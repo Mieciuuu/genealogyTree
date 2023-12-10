@@ -3,13 +3,13 @@ function goMainSite() {
 }
 
 function goAddSite() {
-    window.location = 'addFamily.html';
+    window.location = 'files/addFamily.html';
 }
 
 function goRemoveSite() {
-    window.location = 'removeFamily.html';
+    window.location = 'files/removeFamily.html';
 }
 
 function goSearchRelationsSite() {
-    window.location = 'searchFamilyRelations.html';
+    window.location = 'files/searchFamilyRelations.html';
 }
