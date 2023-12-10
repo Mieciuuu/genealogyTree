@@ -41,7 +41,7 @@
         async function getPeople() {
             try {
                 var data;
-                await fetch('http://localhost:8080/get-people')
+                await fetch('https://drzewogenealogiczneml.azurewebsites.net/get-people')
                 .then((response) => response.json())
                 .then((response) => { data = response; });
                 return data;
@@ -54,7 +54,7 @@
         async function getShortestPath() {
             try {
                 var data;
-                await fetch(`http://localhost:8080/search-path/${encodeURIComponent(selectedOptions[0])}/${encodeURIComponent(selectedOptions[1])}`, {method: 'GET'})
+                await fetch(`https://drzewogenealogiczneml.azurewebsites.net/search-path/${encodeURIComponent(selectedOptions[0])}/${encodeURIComponent(selectedOptions[1])}`, {method: 'GET'})
                 .then((response) => response.json())
                 .then((response) => { data = response; });
                 return data;
