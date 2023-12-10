@@ -1,0 +1,191 @@
+<html lang="pl">
+<head>
+    <meta charset="UTF_8">
+    <title>Drzewo genealogiczne</title>
+    <script src="navigation.js"></script>
+    <style>
+        #family_choice_lists {
+            display: flex;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dodawanie członka rodziny</h1>
+
+    <form action="/submit/addition" method="post" class="form_example">
+        <div class="form_example">
+            <label for="name">Podaj imię: </label>
+            <input type="text" name="name" id="name" required />
+        </div>
+        <div class="form_example">
+            <label for="surname">Podaj nazwisko: </label>
+            <input type="text" name="surname" id="surname" required />
+        </div>
+
+        <br>
+        <div id="family_choice_lists">
+            <div class="list_container">
+                <h2>Dodaj dzieci</h2>
+                <input type="text" id="children_search" placeholder="Wyszukaj...">
+                <ul id="children_list" class="item_list"></ul>
+            </div>
+        
+            <div class="list_container">
+                <h2>Dodaj ojca</h2>
+                <input type="text" id="father_search" placeholder="Wyszukaj...">
+                <ul id="father_list" class="item_list"></ul>
+            </div>
+        
+            <div class="list_container">
+                <h2>Dodaj matkę</h2>
+                <input type="text" id="mother_search" placeholder="Wyszukaj...">
+                <ul id="mother_list" class="item_list"></ul>
+            </div>
+        
+            <script>
+                async function getPeople() {
+                    try {
+                        var data;
+                        await fetch('http://localhost:3000/get-people')
+                        .then((response) => response.json())
+                        .then((response) => { data = response; });
+                        return data;
+                    } catch (error) {
+                        console.error('Error fetching data:', error);
+                        throw error;
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', async function () {
+                    const data = await getPeople();
+                    const famillyLists = [
+                        document.getElementById('children_list'),
+                        document.getElementById('father_list'),
+                        document.getElementById('mother_list')
+                    ];
+            
+                    const searchInputs = [
+                        document.getElementById('children_search'),
+                        document.getElementById('father_search'),
+                        document.getElementById('mother_search')
+                    ];
+            
+                    let selectedOptions = [[], [], []];
+            
+                    famillyLists.forEach(async (itemList, index) => {
+                        displayList(data, index);
+                        if (index == 1 || index == 2) {
+                            attachRadioListeners(itemList, index);
+                        } else {
+                            attachCheckboxListeners(itemList, index);
+                        }
+                    });
+            
+                    searchInputs.forEach((input, index) => {
+                        input.addEventListener('input', async function () {
+                            const searchTerm = input.value.toLowerCase();
+                            const filteredList = filterList(data, searchTerm, index);
+                            displayList(filteredList, index);
+                            if (index == 1 || index == 2) {
+                                attachRadioListeners(famillyLists[index], index);
+                            } else {
+                                attachCheckboxListeners(famillyLists[index], index);
+                            }
+                        });
+                    });
+            
+                    async function displayList(items, index) {
+                        const itemList = famillyLists[index];
+                        itemList.innerHTML = '';
+
+                        items.forEach(async item => {
+                            const listItem = document.createElement('li');
+                            listItem.className = 'list_item';
+
+                            const label = document.createElement('label');
+                            label.textContent = item.name + ' ' + item.surname;
+            
+                            if (index == 1 || index == 2) {
+                                const radio = document.createElement('input');
+                                radio.type = 'radio';
+                                radio.name = `radioGroup_${index}`;
+                                radio.value = [item.name, item.surname];
+                                radio.id = `radio_${index}_${item.name}_${item.surname}`;
+            
+                                if (selectedOptions[index].includes(radio.value)) {
+                                    radio.checked = true;
+                                }
+            
+                                listItem.appendChild(radio);
+                                label.setAttribute('for', `radio_${index}_${item.name}_${item.surname}`);
+                            } else {
+                                const checkbox = document.createElement('input');
+                                checkbox.type = 'checkbox';
+                                checkbox.name = `checkbox_${index}`;
+                                checkbox.value = [item.name, item.surname];
+                                checkbox.id = `checkbox_${index}_${item.name}_${item.surname}`;
+            
+                                if (selectedOptions[index].includes(checkbox.value)) {
+                                    checkbox.checked = true;
+                                }
+            
+                                listItem.appendChild(checkbox);
+                                label.setAttribute('for', `checkbox_${index}_${item.name}_${item.surname}`);
+                            }
+                            listItem.appendChild(label);
+                            itemList.appendChild(listItem);
+                        });
+                    }
+            
+                    function attachRadioListeners(container, index) {
+                        const radios = container.querySelectorAll('input[type="radio"]');
+                        radios.forEach(radio => {
+                            radio.addEventListener('change', function () {
+                                selectedOptions[index] = this.checked ? (this.value) : null;
+                            });
+                        });
+                    }
+            
+                    function attachCheckboxListeners(container, index) {
+                        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+                        checkboxes.forEach(checkbox => {
+                            checkbox.addEventListener('click', function () {
+                                if (this.checked) {
+                                    selectedOptions[index].push(this.value);
+                                }
+                                else {
+                                    const indexToDelete = selectedOptions[index].indexOf(this.value);
+                                    if (indexToDelete != -1) {
+                                        selectedOptions[index].splice(indexToDelete, 1);
+                                    }
+                                }
+                            });
+                        });
+                    }
+            
+                    function filterList(originalList, searchTerm, index) {
+                        const filteredList = originalList.filter(item => {
+                            return (
+                                item.name.toLowerCase().includes(searchTerm) ||
+                                item.surname.toLowerCase().includes(searchTerm) ||
+                                (selectedOptions[index].includes(item.name + ',' + item.surname))
+                            );
+                        });
+                        return filteredList;
+                    }
+                });
+            </script>
+        </div>
+        <div class="form_example">
+            <input type="submit" value="Dodaj" />
+        </div>
+    </form>
+
+    <button onclick="goMainSite()">Powrót do menu głownego</button>
+
+</body>
+</html>

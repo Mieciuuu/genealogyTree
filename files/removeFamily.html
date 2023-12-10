@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Drzewo genealogiczne</title>
+    <script src="navigation.js"></script>
+    <style>
+        ul {
+            list-style-type: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Usuwanie członka rodziny</h1>
+
+    <div class="list_container">
+        <input type="text" id="search_input" placeholder="Wyszukaj...">
+        <ul id="search_result" class="item_list"></ul>
+    </div>
+
+    <script>
+        async function getPeople() {
+            try {
+                var data;
+                await fetch('http://localhost:3000/get-people')
+                .then((response) => response.json())
+                .then((response) => { data = response; });
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                throw error;
+            }
+        }
+
+        async function deletePerson(name, surname) {
+            try {
+                await fetch(`http://localhost:3000/delete-person/${encodeURIComponent(name)}/${encodeURIComponent(surname)}`, {method: 'DELETE'});
+            } catch (error) {
+                console.error('Error deleting person:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            data = await getPeople();
+            displayList(data);
+
+            input = document.getElementById('search_input')
+            input.addEventListener('input', async function () {
+                const searchTerm = input.value.toLowerCase();
+                const filteredList = filterList(data, searchTerm);
+                displayList(filteredList);
+            });
+    
+            async function displayList(items) {
+                const itemList = document.getElementById('search_result');
+                itemList.innerHTML = '';
+
+                items.forEach(async item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list_item';
+    
+                    const button = document.createElement('button');
+                    button.innerHTML = 'Usuń';
+                    button.id = `button_${item.name}_${item.surname}`;
+                    button.addEventListener('click', async () => {
+                        await deletePerson(item.name, item.surname);
+                        data = await getPeople();
+                        displayList(data);
+                    });
+                    listItem.appendChild(button);
+
+                    const label = document.createElement('label');
+                    label.textContent = item.name + ' ' + item.surname;
+                    label.setAttribute('for', `button_${item.name}_${item.surname}`);
+                    listItem.appendChild(label);
+
+                    itemList.appendChild(listItem);
+                });
+            }
+    
+            function filterList(originalList, searchTerm) {
+                const filteredList = originalList.filter(item => {
+                    return (
+                        item.name.toLowerCase().includes(searchTerm) ||
+                        item.surname.toLowerCase().includes(searchTerm)
+                    );
+                });
+                return filteredList;
+            }
+        });
+    </script>
+
+    <button onclick="goMainSite()">Powrót do menu głownego</button>
+
+</body>
+</html>

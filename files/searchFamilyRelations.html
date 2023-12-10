@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Drzewo genealogiczne</title>
+    <script src="navigation.js"></script>
+    <style>
+        ul {
+            list-style-type: none;
+        }
+
+        #form-cont {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <h1>Szukanie powiązań</h1>
+
+    <div id="form-cont">
+        <div class="list_container">
+            <h2>Od:</h2>
+            <input type="text" id="start_search" placeholder="Wyszukaj...">
+            <ul id="start_result" class="item_list"></ul>
+        </div>
+    
+        <div class="list_container">
+            <h2>Do:</h2>
+            <input type="text" id="end_search" placeholder="Wyszukaj...">
+            <ul id="end_result" class="item_list"></ul>
+        </div>
+    </div>
+
+    <h2>Wynik wyszukiwania:</h2>
+    <div id="search_result">
+        ...
+    </div>
+
+    <script>
+        let selectedOptions = [null, null];
+        async function getPeople() {
+            try {
+                var data;
+                await fetch('http://localhost:3000/get-people')
+                .then((response) => response.json())
+                .then((response) => { data = response; });
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                throw error;
+            }
+        }
+
+        async function getShortestPath() {
+            try {
+                var data;
+                await fetch(`http://localhost:3000/search-path/${encodeURIComponent(selectedOptions[0])}/${encodeURIComponent(selectedOptions[1])}`, {method: 'GET'})
+                .then((response) => response.json())
+                .then((response) => { data = response; });
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                throw error;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const data = await getPeople();
+            const famillyLists = [
+                document.getElementById('start_result'),
+                document.getElementById('end_result')
+            ];
+    
+            const searchInputs = [
+                document.getElementById('start_search'),
+                document.getElementById('end_search')
+            ];
+    
+            famillyLists.forEach(async (itemList, index) => {
+                displayList(data, index);
+                attachRadioListeners(itemList, index);
+            });
+    
+            searchInputs.forEach((input, index) => {
+                input.addEventListener('input', async function () {
+                    const searchTerm = input.value.toLowerCase();
+                    const filteredList = filterList(data, searchTerm, index);
+                    displayList(filteredList, index);
+                    attachRadioListeners(famillyLists[index], index);
+                });
+            });
+    
+            async function displayList(items, index) {
+                const itemList = famillyLists[index];
+                itemList.innerHTML = '';
+
+                items.forEach(async item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list_item';
+
+                    const label = document.createElement('label');
+                    label.textContent = item.name + ' ' + item.surname;
+    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `radioGroup_${index}`;
+                    radio.value = [item.name, item.surname];
+                    radio.id = `radio_${index}_${item.name}_${item.surname}`;
+
+                    if (selectedOptions[index] == radio.value) {
+                        radio.checked = true;
+                    }
+
+                    listItem.appendChild(radio);
+                    label.setAttribute('for', `radio_${index}_${item.name}_${item.surname}`);
+                
+                    listItem.appendChild(label);
+                    itemList.appendChild(listItem);
+                });
+            }
+    
+            function attachRadioListeners(container, index) {
+                const radios = container.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', async function () {
+                        selectedOptions[index] = this.checked ? (this.value) : null;
+                        if (selectedOptions[0] != null && selectedOptions[1] != null) {
+                            const shortestPath = await getShortestPath();
+                            document.getElementById('search_result').innerHTML = shortestPath;
+                        }
+                    });
+                });
+            }
+    
+            function filterList(originalList, searchTerm, index) {
+                const filteredList = originalList.filter(item => {
+                    return (
+                        item.name.toLowerCase().includes(searchTerm) ||
+                        item.surname.toLowerCase().includes(searchTerm) ||
+                        (selectedOptions.includes(item.name + ',' + item.surname))
+                    );
+                });
+                return filteredList;
+            }
+        });
+    </script>
+
+    <button onclick="goMainSite()">Powrót do menu głownego</button>
+
+</body>
+</html>
