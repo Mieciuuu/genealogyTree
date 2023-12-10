@@ -22,7 +22,7 @@
         async function getPeople() {
             try {
                 var data;
-                await fetch('http://localhost:3000/get-people')
+                await fetch('http://localhost:8080/get-people')
                 .then((response) => response.json())
                 .then((response) => { data = response; });
                 return data;
@@ -34,7 +34,7 @@
 
         async function deletePerson(name, surname) {
             try {
-                await fetch(`http://localhost:3000/delete-person/${encodeURIComponent(name)}/${encodeURIComponent(surname)}`, {method: 'DELETE'});
+                await fetch(`http://localhost:8080/delete-person/${encodeURIComponent(name)}/${encodeURIComponent(surname)}`, {method: 'DELETE'});
             } catch (error) {
                 console.error('Error deleting person:', error);
             }

@@ -50,7 +50,7 @@
                 async function getPeople() {
                     try {
                         var data;
-                        await fetch('http://localhost:3000/get-people')
+                        await fetch('http://localhost:8080/get-people')
                         .then((response) => response.json())
                         .then((response) => { data = response; });
                         return data;

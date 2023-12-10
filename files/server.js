@@ -4,7 +4,7 @@ const path = require('path');
 const neo4j = require('neo4j-driver');
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

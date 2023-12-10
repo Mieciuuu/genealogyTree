@@ -41,7 +41,7 @@
         async function getPeople() {
             try {
                 var data;
-                await fetch('http://localhost:3000/get-people')
+                await fetch('http://localhost:8080/get-people')
                 .then((response) => response.json())
                 .then((response) => { data = response; });
                 return data;
@@ -54,7 +54,7 @@
         async function getShortestPath() {
             try {
                 var data;
-                await fetch(`http://localhost:3000/search-path/${encodeURIComponent(selectedOptions[0])}/${encodeURIComponent(selectedOptions[1])}`, {method: 'GET'})
+                await fetch(`http://localhost:8080/search-path/${encodeURIComponent(selectedOptions[0])}/${encodeURIComponent(selectedOptions[1])}`, {method: 'GET'})
                 .then((response) => response.json())
                 .then((response) => { data = response; });
                 return data;
